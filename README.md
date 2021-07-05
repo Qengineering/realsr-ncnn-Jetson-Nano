@@ -73,6 +73,7 @@ Most important is the folder where the binaries are stored.<br/> This directory 
 ### realsr-ncnn-vulkan
 Now we can install the realsr ncnn framework.
 ```
+cd ~
 git clone https://github.com/nihui/realsr-ncnn-vulkan.git
 cd realsr-ncnn-vulkan
 git submodule update --init --recursive
