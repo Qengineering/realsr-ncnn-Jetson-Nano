@@ -71,9 +71,11 @@ make -j4 install
 Most important is the folder where the binaries are stored.<br/> This directory must be given in the `CMakeLists.txt` later on.<br/><br/>
 ![output image]( https://qengineering.eu/images/glslang_folder_nano.png)<br/>
 ### realsr-ncnn-vulkan
-Now we can install the realsr ncnn framework.
+Now we can install the realsr ncnn framework.<br/>
+Although your Nano has Vulkan, ncnn still needs the header files, hence the installation.
 ```
 cd ~
+sudo apt-get install libvulkan-dev
 git clone https://github.com/nihui/realsr-ncnn-vulkan.git
 cd realsr-ncnn-vulkan
 git submodule update --init --recursive
