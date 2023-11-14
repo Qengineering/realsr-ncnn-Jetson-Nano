@@ -16,11 +16,12 @@ No need to have the ncnn framework on your Jetson Nano on forehand.
 ------------
 
 ## Installing the app.
+The Jetson Nano is getting old. More than ten years now. Many software packages evolve and require more up-to-date environments. For example, in the case of glslang, a more recent version of Cmake and GNU compiler. Both will first need to be updated before the realsr app can be installed.
 ### CMake
-The CMake version on the Jetpack 4.5.1. is 3.10.2. That is too old. <br/>
+The current CMake is the 3.10.2 version. That is too old. <br/>
 Let's update the latest version by building it from scratch
 First, remove the old version.<br/>
-The old version is located at `/usr/bin`, which will be visit before the new version at `/usr/local/bin` is scanned.<br/>
+The old version is located at `/usr/bin`, which is visited before the new version at `/usr/local/bin` is scanned.<br/>
 This way, you still keep using the old version.
 ```
 sudo apt-get remove --purge cmake
@@ -31,7 +32,7 @@ sudo apt-get install libssl-dev
 wget https://cmake.org/files/v3.20/cmake-3.20.0.tar.gz
 tar -xzvf cmake-3.20.0.tar.gz
 ```
-compile the package. This takes a while
+Compile the package. It takes a while
 ```
 cd cmake-3.20.0
 ./bootstrap
@@ -43,6 +44,95 @@ And test the new version
 cmake --version
 ```
 ![output image]( https://qengineering.eu/images/Cmake_3_20_Rdy_Nano.png)<br/>
+### GNU
+On the Jetpack 4.5.1, the GNU compiler is version 7.5.0. That is also too old. <br/>
+Let's install version 10.1. It will take a while, more than 3 hours!<br/>
+Start with the dependencies.
+```
+$ sudo apt-get install build-essential wget m4 flex bison
+```
+Download GNU 10.1
+```
+$ cd
+$ wget https://ftpmirror.gnu.org/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz
+$ tar xf gcc-10.1.0.tar.xz
+$ cd gcc-10.1.0
+$ sudo contrib/download_prerequisites
+```
+Create a build folder and run Cmake and Make. 
+```
+$ cd
+$ mkdir gcc10build
+$ cd gcc10build
+$ ../gcc-10.1.0/configure -v \
+  --build=aarch64-linux-gnu \
+  --host=aarch64-linux-gnu \
+  --target=aarch64-linux-gnu \
+  --prefix=/usr/local/gcc-10.1.0 \
+  --enable-checking=release \
+  --enable-languages=c,c++ \
+  --disable-multilib \
+  --program-suffix=-10.1
+$ make -j4
+$ sudo make install-strip
+```
+It is time to activate the GNU-10.1 compiler. It can be a _temporary_ or _permanent_ activation.<br> 
+It seems logical to set the compiler to the new GNU-10.1 version. However, previously compiled code with the GNU-7.5.0 version may conflict with the newly installed version.
+Care must be taken!<br><br>
+In our case, with the realsr app, we using temporary activation.<br>
+#### Temporarily activation.
+Set a path to the GNU-10.1 location in ~/.bashrc
+```
+$ cd
+$ nano .bashrc
+
+#at the end insert these two lines
+export PATH=/usr/local/gcc-10.1.0/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/gcc-10.1.0/lib64:$LD_LIBRARY_PATH
+#close with <Ctrl>+<X>, <Y>, <Enter>
+$ source ~/.bashrc
+```
+Activate the GNU-10.1 compiler in the SAME terminal window where you are going to compile glslang.
+```
+$ export CC=gcc-10.1
+$ export CXX=g++-10.1
+```
+At this point, CMake will select the GNU-10.1 version (only in this terminal). 
+All other terminals are still using the original GNU-7.5.0 version.
+#### Permanently activation.
+To set the GNU-10.1 compiler permantly, you modify a few symbolic links.
+```
+$ sudo rm cpp
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/cpp-10.1 /usr/bin/cpp
+$ sudo rm g++
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-g++-10.1 /usr/bin/g++
+$ sudo rm gcc
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-10.1 /usr/bin/gcc
+$ sudo rm gcc-ar
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-ar-10.1 /usr/bin/gcc-ar
+$ sudo rm gcc-nm
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-nm-10.1 /usr/bin/gcc-nm
+$ sudo rm gcc-ranlib
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-ranlib-10.1 /usr/bin/gcc-ranlib
+
+$ sudo rm aarch64-linux-gnu-cpp
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/cpp-10.1 /usr/bin/aarch64-linux-gnu-cpp
+$ sudo rm aarch64-linux-gnu-g++
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-g++-10.1 /usr/bin/aarch64-linux-gnu-g++
+$ sudo rm aarch64-linux-gnu-gcc
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-10.1 /usr/bin/aarch64-linux-gnu-gcc
+$ sudo rm aarch64-linux-gnu-gcc-ar
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-ar-10.1 /usr/bin/aarch64-linux-gnu-gcc-ar
+$ sudo rm aarch64-linux-gnu-gcc-nm
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-nm-10.1 /usr/bin/aarch64-linux-gnu-gcc-nm
+$ sudo rm aarch64-linux-gnu-gcc-ranlib
+$ sudo ln -s /usr/local/gcc-10.1.0/bin/aarch64-linux-gnu-gcc-ranlib-10.1 /usr/bin/aarch64-linux-gnu-gcc-ranlib
+```
+Now, the GNU-10.1 will be your compiler system-wide.<br>
+![Screenshot from 2023-11-14 12-29-26](https://github.com/Qengineering/realsr-ncnn-Jetson-Nano/assets/44409029/73394793-137b-410d-8035-6d4f7da3b7f0)<br>
+Note that you can always replace the symbolic links to their original values, thereby restoring the GNU-7.5.1 again.<br>
+And, once again, you may run into problems mixing the two compilers!
+
 ### glslang
 With CMake up to date, the next package to install is glslang.
 Start with downloading the code.
