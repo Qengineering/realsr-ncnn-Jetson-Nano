@@ -193,7 +193,7 @@ cmake --build . -j 4
 ```
 Once done, you can test your software. 
 ```
-./realsr-ncnn-vulkan -i ../images/0.jpg -o ../images/out.png -s 4 -x -m ../models/models-DF2K
+./realsr-ncnn-vulkan -i ../images/0.png -o ../images/out.png -s 4 -x -m ../models/models-DF2K
 
 ```
 ![output image]( https://qengineering.eu/images/realsr_nano_run.png)<br/>
